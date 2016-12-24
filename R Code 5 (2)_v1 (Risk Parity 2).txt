@@ -1,0 +1,104 @@
+## ======== Risk parity strategy ======== ##
+
+# Clear workspace
+
+rm(list=ls()) ; par(mfrow=c(1,1))
+library(xts)
+library(zoo)
+
+
+# Import weights, volatilities, returns
+
+erci <- read.csv("U:/R/erci.csv")
+erci <- as.data.frame(erci)
+
+ret <- read.csv("U:/R/ret.csv")
+ret$Date <- as.Date(ret$Date,"%d/%m/%Y")
+Date <- ret$Date
+ret.wod <- ret[,-1]
+
+
+# Match days with months
+
+colnames(erci)[1] <- "Date"
+erci$Date <- as.Date(erci$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+erc <- merge(Datem, erci, all.x = T, all.y = F)
+erc <- erc[,-1]
+
+erc <- as.matrix(erc)
+
+
+# Weights
+
+ret$Date <- NULL
+ercw <- NULL
+ercw <- as.data.frame(ercw)
+
+for (k in 1:ncol(ret.wod)){ # for k assets
+    for (i in 1:nrow(ret.wod)){ # for n months
+        ercw[i,k] <- erc[i,k]/sum(erc[i,])
+    }
+}
+
+
+# Return series
+
+mean.narm <- function(x) mean(x, na.rm=T)
+
+ercmom <- NULL
+ercmom <- as.data.frame(ercmom)
+
+for (k in 1:ncol(ret.wod)){ # for k assets
+    for (i in 1:(nrow(ret.wod)-12)){ # for n months
+        ercmom[i,k] <- ret[(i+12), k]*ercw[(i+12),k]*sign(sum(ret[i:(i+11), k]))
+    }
+}
+
+ercmom12 <- ercmom
+ercmom12 <- apply(ercmom,1,sum)
+ercmom12 <- data.frame(Date[13:nrow(ret)],ercmom12)
+
+colnames(ercmom12)[1] <- "Date"
+colnames(ercmom12)[2] <- "Mom12 Ret"
+
+write.csv(ercmom12,"U:/R/erc ret b.csv")
+
+
+# === Leverage coefficient
+
+# Rolling covariance matrix
+
+dret <- read.csv("U:/R/dret.csv")
+dret$Date <- as.Date(dret$Date, "%d/%m/%Y")
+dret <- dret[241:6616,]
+
+dret.wod <- dret[,-1]
+
+h <- 90
+ldate.list <- read.csv("U:/R/ldate.list.csv")
+ldate.list <- as.matrix(ldate.list)
+
+rcov = function(i) cov(dret.wod[ldate.list[i]:(ldate.list[i]+h),],use="pairwise.complete.obs")
+
+
+# Derive portfolio variance
+
+ercwsign <- NULL
+ercwsign <- as.data.frame(ercwsign)
+
+for (k in 1:ncol(ret)){ # for k assets
+  for (i in 1:(nrow(ret)-12)){ # for n months
+    ercwsign[i,k] <- sign(sum(ret[i:(i+11), k]))*ercw[(i+12),k]
+  }
+}
+
+ercwsign <- as.matrix(ercwsign)
+
+ercstdev <- NULL
+for (i in 1:(nrow(ret)-12)){ # for n days
+  ercstdev[i] <- sqrt(t(cbind(ercwsign[i,]))%*%(rcov(i)*261)%*%cbind(ercwsign[i,]))
+}
+
+write.csv(ercstdev,"U:/R/ercstdev.csv")

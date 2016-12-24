@@ -1,0 +1,123 @@
+## ======== Cluster risk parity 3 ======== ##
+
+# Clear workspace
+
+rm(list=ls()) ; par(mfrow=c(1,1))
+library(xts)
+library(zoo)
+
+
+# Import weights, volatilities, returns
+
+rpwi <- read.csv("U:/R/rpwi.csv")
+rpwi <- as.data.frame(rpwi)
+
+ret <- read.csv("U:/R/ret.csv")
+ret$Date <- as.Date(ret$Date,"%d/%m/%Y")
+Date <- ret$Date
+ret.wod <- ret[,-1]
+
+
+# Match days with months
+
+colnames(rpwi)[1] <- "Date"
+rpwi$Date <- as.Date(rpwi$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+rpw <- merge(Datem, rpwi, all.x = T, all.y = F)
+rpw <- rpw[,-1]
+
+rpw <- as.matrix(rpw)
+
+
+# Import daily asset class weights and match days with months
+
+rpwaci <- read.csv("U:/R/rpwaci.csv")
+rpwaci <- as.data.frame(rpwaci)
+
+colnames(rpwaci)[1] <- "Date"
+rpwaci$Date <- as.Date(rpwaci$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+rpwac <- merge(Datem, rpwaci, all.x = T, all.y = F)
+rpwac <- rpwac[,-1]
+
+write.csv(rpwac,"U:/R/rpwac.csv")
+
+
+# Return series
+
+mean.narm <- function(x) mean(x, na.rm=T)
+
+rpwmom <- NULL
+rpwmom <- as.data.frame(rpwmom)
+
+for (k in 1:ncol(ret.wod)){ # for k assets
+    for (i in 1:(nrow(ret.wod)-12)){ # for n months
+        rpwmom[i,k] <- ret.wod[(i+12), k]*rpw[(i+12),k]*sign(sum(ret.wod[i:(i+11), k]))
+    }
+}
+
+rpwmom12 <- rpwmom
+rpwmom12 <- apply(rpwmom,1,sum)
+rpwmom12 <- data.frame(Date[13:nrow(ret)],rpwmom12)
+
+colnames(rpwmom12)[1] <- "Date"
+colnames(rpwmom12)[2] <- "Mom12 Ret"
+
+write.csv(rpwmom12,"U:/R/rpw ret c.csv")
+
+
+# === Leverage coefficient
+
+# Rolling covariance matrix
+
+dret <- read.csv("U:/R/dret.csv")
+dret$Date <- as.Date(dret$Date, "%d/%m/%Y")
+dret <- dret[241:6616,]
+
+dret.wod <- dret[,-1]
+
+h <- 90
+ldate.list <- read.csv("U:/R/ldate.list.csv")
+ldate.list <- as.matrix(ldate.list)
+
+rcov = function(i) cov(dret.wod[ldate.list[i]:(ldate.list[i]+h),],use="pairwise.complete.obs")
+
+
+# Derive portfolio variance
+
+rpwsign <- NULL
+rpwsign <- as.data.frame(rpwsign)
+
+for (k in 1:ncol(ret.wod)){ # for k assets
+    for (i in 1:(nrow(ret.wod)-12)){ # for n months
+        rpwsign[i,k] <- sign(sum(ret.wod[i:(i+11), k]))*rpw[(i+12),k]
+    }
+}
+
+rpwsign <- as.matrix(rpwsign)
+
+rpwstdev <- NULL
+for (i in 1:(nrow(ret.wod)-12)){ # for n days
+    rpwstdev[i] <- sqrt(t(cbind(rpwsign[i,]))%*%(rcov(i)*261)%*%cbind(rpwsign[i,]))
+}
+
+write.csv(rpwstdev,"U:/R/rpwstdev b.csv")
+
+
+# === Diversification ratio
+
+rpwdrs <- NULL
+for (i in 1:(nrow(ret.wod)-12)){ # for n days
+    rpwdrs[i] <- t(cbind(rpwsign[i,]))%*%cbind(sqrt(diag(rcov(i)*261)))/rpwstdev[i]
+}
+
+write.csv(rpwdrs,"U:/R/rpwdrs.csv")
+
+rpwdr <- NULL
+for (i in 1:(nrow(ret.wod)-12)){ # for n days
+    rpwdr[i] <- t(cbind(rpw[i,]))%*%cbind(sqrt(diag(rcov(i)*261)))/rpwstdev[i]
+}
+
+write.csv(rpwdr,"U:/R/rpwdr.csv")

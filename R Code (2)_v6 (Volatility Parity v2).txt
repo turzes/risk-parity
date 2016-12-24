@@ -1,0 +1,202 @@
+#======================
+# Data Cleaning
+#======================
+
+# Clear workspace
+
+rm(list=ls()) ; par(mfrow=c(1,1))
+library(xts)
+library(zoo)
+
+# Load monthly futures returns
+
+ret <- read.csv("U:/R/ret.csv")
+ret$Date <- as.Date(ret$Date,"%d/%m/%Y")
+str(ret)
+
+# Import daily returns to build volatilty measure
+
+dret <- read.csv("U:/R/dret.csv")
+sd.narm <- function(x) sd(x, na.rm=T)
+dvols <- rollapply(dret[,2:ncol(dret)], 60, sd.narm)
+
+dvols <- data.frame(dret$Date[60:nrow(dret)], dvols)
+colnames(dvols)[1] <- "Date"
+dvols$Date <- as.Date(dvols$Date,"%d/%m/%Y")
+str(dvols)
+
+# Matching daily vols with dates from monthly returns
+
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+DateV <- merge(Datem, dvols, all.x = T, all.y = F)
+
+write.csv(dvols,"U:/R/dvols.csv")
+write.csv(DateV,"U:/R/mvols.csv")
+
+
+#======================
+# Strategy Coding
+#======================
+
+# Clear workspace
+
+rm(list=ls()) ; par(mfrow=c(1,1))
+
+# Load return and daily vols with month dates (Remove first column in mvols)
+
+ret <- read.csv("U:/R/ret.csv")
+mvols <- read.csv("U:/R/mvols.csv")
+
+ret$Date <- as.Date(ret$Date, "%d/%m/%Y")
+mvols$Date <- as.Date(mvols$Date, "%Y-%m-%d")
+
+#Remove dates from dataset and reattach later
+
+Date <- ret$Date
+ret$Date <- NULL
+mvols$Date <- NULL
+
+# Mean with na's removed
+
+mean.narm <- function(x) mean(x, na.rm=T)
+
+
+## ======== Volatility parity strategy ======== ##
+
+# === Constant volatility strategy
+
+mvols <- mvols[,-1]
+imvols <- NULL
+imvols <- as.data.frame(imvols)
+
+for (k in 1:ncol(ret)){ # for k assets
+  for (i in 1:nrow(ret)){ # for n months
+    imvols[i,k] <- 1/(mvols[i,k]*sqrt(261))
+  }
+}
+
+ws <- NULL
+ws <- as.data.frame(ws)
+
+for (k in 1:ncol(ret)){ # for k assets
+  for (i in 1:nrow(ret)){ # for n months
+    ws[i,k] <- imvols[i,k]/sum(imvols[i,])
+  }
+}
+
+ws <- as.matrix(ws)
+
+write.csv(ws,"U:/R/ws.csv")
+
+cvmom <- NULL
+cvmom <- as.data.frame(cvmom)
+
+for (k in 1:ncol(ret)){ # for k assets
+  for (i in 1:(nrow(ret)-12)){ # for n months
+    cvmom[i,k] <- ret[(i+12), k]*ws[(i+12),k]*sign(sum(ret[i:(i+11), k]))
+  }
+}
+
+cvmom12 <- cvmom
+cvmom12 <- apply(cvmom,1,sum)
+cvmom12 <- data.frame(Date[13:nrow(ret)],cvmom12)
+
+colnames(cvmom12)[1] <- "Date"
+colnames(cvmom12)[2] <- "Mom12 Ret"
+
+write.csv(cvmom12,"U:/R/cv ret b.csv")
+
+
+# === Long-only constant volatility strategy
+lomom <- NULL
+lomom <- as.data.frame(lomom)
+
+for (k in 1:ncol(ret)){ # for k assets
+  for (i in 1:(nrow(ret)-12)){ # for n months
+    lomom[i,k] <- ret[(i+12), k]*ws[(i+12),k]
+  }
+}
+
+lomom12 <- lomom
+lomom12 <- apply(lomom, 1, sum)
+lomom12 <- data.frame(Date[13:nrow(ret)], lomom12)
+
+colnames(lomom12)[1] <- "Date"
+colnames(lomom12)[2] <- "Long Only Returns"
+
+write.csv(lomom12,"U:/R/lo ret b.csv")
+
+
+# === Leverage coefficient
+
+# Rolling covariance matrix
+
+dret <- read.csv("U:/R/dret.csv")
+dret$Date <- as.Date(dret$Date, "%d/%m/%Y")
+dret <- dret[241:6616,]
+
+dret.wod <- dret[,-1]
+
+h <- 90
+ldate.list <- read.csv("U:/R/ldate.list.csv")
+ldate.list <- as.matrix(ldate.list)
+
+rcov = function(i) cov(dret.wod[ldate.list[i]:(ldate.list[i]+h),],use="pairwise.complete.obs")
+
+
+# Derive portfolio variance
+
+wsign <- NULL
+wsign <- as.data.frame(wsign)
+
+for (k in 1:ncol(ret)){ # for k assets
+  for (i in 1:nrow(ret)){ # for n months
+    wsign[i,k] <- sign(sum(ret[i:(i+11), k]))*imvols[i+12,k]/sum(imvols[i+12,])
+  }
+}
+
+wsign <- as.matrix(wsign)
+
+write.csv(wsign,"U:/R/wsign.csv")
+
+cvstdev <- NULL
+for (i in 1:(nrow(ret)-12)){ # for n days
+  cvstdev[i] <- sqrt(t(cbind(wsign[i,]))%*%(rcov(i)*261)%*%cbind(wsign[i,]))
+}
+
+write.csv(cvstdev,"U:/R/cvstdev.csv")
+
+
+# === Diversification ratio
+
+cvdrs <- NULL
+for (i in 1:(nrow(ret)-12)){ # for n days
+    cvdrs[i] <- t(cbind(wsign[i,]))%*%cbind(sqrt(diag(rcov(i)*261)))/cvstdev[i]
+}
+
+write.csv(cvdrs,"U:/R/cvdrs.csv")
+
+cvdr <- NULL
+for (i in 1:(nrow(ret)-12)){ # for n days
+    cvdr[i] <- t(cbind(ws[i,]))%*%cbind(sqrt(diag(rcov(i)*261)))/cvstdev[i]
+}
+
+write.csv(cvdr,"U:/R/cvdr.csv")
+
+
+# === Trading Rule
+
+sign <- NULL
+sign <- as.data.frame(sign)
+
+for (k in 1:ncol(ret)){ # for k assets
+  for (i in 1:(nrow(ret)-12)){ # for n months
+    sign[i,k] <- 1*sign(sum(ret[i:(i+11), k]))
+  }
+}
+
+sign12 <- sign
+sign12 <- data.frame(Date[13:nrow(ret)],sign12)
+
+write.csv(sign12,"U:/R/sign.csv")

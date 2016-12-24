@@ -1,0 +1,65 @@
+## ======== Descriptive Statistics ======== ##
+
+# Clear workspace
+
+rm(list=ls()) ; par(mfrow=c(1,1))
+library(xts)
+library(zoo)
+library(moments)
+library(PerformanceAnalytics)
+
+ret <- read.csv("U:/R/ret.csv")
+ret$Date <- as.Date(ret$Date,"%d/%m/%Y")
+ret.wod <- ret[,-1]
+
+
+# Mean
+
+avret <- NULL
+for (i in 1:ncol(ret.wod)){ # for n months
+  avret[i] <- (mean(ret.wod[,i],na.rm=T))*12
+}
+
+
+# Standard deviation
+
+avvol <- NULL
+for (i in 1:ncol(ret.wod)){ # for n months
+  avvol[i] <- (sd(ret.wod[,i],na.rm=T))*sqrt(12)
+}
+
+
+# Skewness
+
+skew <- NULL
+for (i in 1:ncol(ret.wod)){ # for n months
+  skew[i] <- skewness(ret.wod[,i],na.rm=T)
+}
+
+
+# Kurtosis
+
+kurt <- NULL
+for (i in 1:ncol(ret.wod)){ # for n months
+  kurt[i] <- kurtosis(ret.wod[,i],na.rm=T)
+}
+
+
+# Max Drawdown
+
+md <- NULL
+for (i in 1:ncol(ret.wod)){ # for n months
+  md[i] <- maxDrawdown(ret.wod[,i],invert=F)
+}
+
+
+# Descriptive Statistics
+
+moments <- NULL
+moments <- as.data.frame(moments)
+moments <- cbind(avret,avvol,skew,kurt,md)
+
+write.csv(moments,"U:/R/moments.csv")
+
+chart.RiskReturnScatter(Return.read(ret),Rf=0,xlab="Annualised Volatility",ylab="Annualised Return",
+                        method="calc",colorset=c(1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,4,4,4,4,6,6,6,6,6))

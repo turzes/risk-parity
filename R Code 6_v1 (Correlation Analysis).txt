@@ -1,0 +1,174 @@
+## ======== Correlation Analysis ======== ##
+
+# Clear workspace
+
+rm(list=ls()) ; par(mfrow=c(1,1))
+library(xts)
+library(zoo)
+
+
+# Rolling average pairwise corrlelation (portfolio)
+
+ret <- read.csv("U:/R/ret.csv")
+ret$Date <- as.Date(ret$Date,"%d/%m/%Y")
+
+dret <- read.csv("U:/R/dret.csv")
+dret.wod <- dret[,-1]
+
+avcor = NULL
+h = 90 # 90 days to calculate correlation
+for (i in 1:(nrow(dret.wod)-h)){
+    avcor[i] = mean(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[lower.tri(cor(dret.wod[i:(i+h),]))], na.rm=T) 
+}
+
+avcor <- data.frame(dret$Date[(h+1):nrow(dret.wod)], avcor)
+colnames(avcor)[1] <- "Date"
+avcor$Date <- as.Date(avcor$Date,"%d/%m/%Y")
+
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+avpcor <- merge(Datem, avcor, all.x = T, all.y = F)
+
+write.csv(avpcor,"U:/R/avpcor.csv")
+
+
+# Rolling average pairwise corrlelation (intra-asset)
+
+avpcoreq <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcoreq[i] <- sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[1:8,1:8],na.rm=T)/(8*8)
+}
+avpcoreq <- data.frame(dret$Date[(h+1):nrow(dret)], avpcoreq)
+colnames(avpcoreq)[1] <- "Date"
+avpcoreq$Date <- as.Date(avpcoreq$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+intraeq <- merge(Datem, avpcoreq, all.x = T, all.y = F)
+
+avpcorfi <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcorfi[i] <- sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[9:17,9:17],na.rm=T)/(9*9)
+}
+avpcorfi <- data.frame(dret$Date[(h+1):nrow(dret)], avpcorfi)
+colnames(avpcorfi)[1] <- "Date"
+avpcorfi$Date <- as.Date(avpcorfi$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+intrafi <- merge(Datem, avpcorfi, all.x = T, all.y = F)
+
+
+avpcorfx <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcorfx[i] <- sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[18:22,18:22],na.rm=T)/(5*5)
+}
+avpcorfx <- data.frame(dret$Date[(h+1):nrow(dret)], avpcorfx)
+colnames(avpcorfx)[1] <- "Date"
+avpcorfx$Date <- as.Date(avpcorfx$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+intrafx <- merge(Datem, avpcorfx, all.x = T, all.y = F)
+
+avpcorcmdty <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcorcmdty[i] <- sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[23:31,23:31],na.rm=T)/(9*9)
+}
+avpcorcmdty <- data.frame(dret$Date[(h+1):nrow(dret)], avpcorcmdty)
+colnames(avpcorcmdty)[1] <- "Date"
+avpcorcmdty$Date <- as.Date(avpcorcmdty$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+intracmdty <- merge(Datem, avpcorcmdty, all.x = T, all.y = F)
+
+avpcornrg <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcornrg[i] <- sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[32:36,32:36],na.rm=T)/(5*5)
+}
+avpcornrg <- data.frame(dret$Date[(h+1):nrow(dret)], avpcornrg)
+colnames(avpcornrg)[1] <- "Date"
+avpcornrg$Date <- as.Date(avpcornrg$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+intranrg <- merge(Datem, avpcornrg, all.x = T, all.y = F)
+
+
+intrafi <- intrafi[,-1]
+intrafx <- intrafx[,-1]
+intracmdty <- intracmdty[,-1]
+intranrg <- intranrg[,-1]
+
+intraavpcor <- NULL
+intraavpcor <- as.data.frame(intraavpcor)
+intraavpcor <- cbind(intraeq,intrafi,intrafx,intracmdty,intranrg)
+
+write.csv(intraavpcor,"U:/R/intraavpcor.csv")
+
+
+# Rolling average pairwise corrlelation (inter-asset)
+
+avpcoreq <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcoreq[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,1:8],na.rm=T)-sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[1:8,1:8],na.rm=T))/((8*ncol(dret.wod))-(8*8))
+}
+avpcoreq <- data.frame(dret$Date[(h+1):nrow(dret)], avpcoreq)
+colnames(avpcoreq)[1] <- "Date"
+avpcoreq$Date <- as.Date(avpcoreq$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+intereq <- merge(Datem, avpcoreq, all.x = T, all.y = F)
+
+avpcorfi <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcorfi[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,9:17],na.rm=T)-sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[9:17,9:17],na.rm=T))/((8*ncol(dret.wod))-(9*9))
+}
+avpcorfi <- data.frame(dret$Date[(h+1):nrow(dret)], avpcorfi)
+colnames(avpcorfi)[1] <- "Date"
+avpcorfi$Date <- as.Date(avpcorfi$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+interfi <- merge(Datem, avpcorfi, all.x = T, all.y = F)
+
+
+avpcorfx <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcorfx[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,18:22],na.rm=T)-sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[18:22,18:22],na.rm=T))/((5*ncol(dret.wod))-(5*5))
+}
+avpcorfx <- data.frame(dret$Date[(h+1):nrow(dret)], avpcorfx)
+colnames(avpcorfx)[1] <- "Date"
+avpcorfx$Date <- as.Date(avpcorfx$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+interfx <- merge(Datem, avpcorfx, all.x = T, all.y = F)
+
+avpcorcmdty <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcorcmdty[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,23:31],na.rm=T)-sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[23:31,23:31],na.rm=T))/((9*ncol(dret.wod))-(9*9))
+}
+avpcorcmdty <- data.frame(dret$Date[(h+1):nrow(dret)], avpcorcmdty)
+colnames(avpcorcmdty)[1] <- "Date"
+avpcorcmdty$Date <- as.Date(avpcorcmdty$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+intercmdty <- merge(Datem, avpcorcmdty, all.x = T, all.y = F)
+
+avpcornrg <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcornrg[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,32:36],na.rm=T)-sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[32:36,32:36],na.rm=T))/((6*ncol(dret.wod))-(5*5))
+}
+avpcornrg <- data.frame(dret$Date[(h+1):nrow(dret)], avpcornrg)
+colnames(avpcornrg)[1] <- "Date"
+avpcornrg$Date <- as.Date(avpcornrg$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+internrg <- merge(Datem, avpcornrg, all.x = T, all.y = F)
+
+
+interfi <- interfi[,-1]
+interfx <- interfx[,-1]
+intercmdty <- intercmdty[,-1]
+internrg <- internrg[,-1]
+
+interavpcor <- NULL
+interavpcor <- as.data.frame(intraavpcor)
+interavpcor <- cbind(intereq,interfi,interfx,intercmdty,internrg)
+
+write.csv(interavpcor,"U:/R/interavpcor.csv")

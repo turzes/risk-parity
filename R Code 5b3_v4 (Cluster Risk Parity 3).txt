@@ -1,0 +1,151 @@
+## ======== Cluster risk parity 3 ======== ##
+
+# Clear workspace
+
+rm(list=ls()) ; par(mfrow=c(1,1))
+library(xts)
+library(zoo)
+
+
+# Import weights, volatilities, returns
+
+rpwi <- read.csv("U:/R/rpwi.csv")
+rpwi <- as.data.frame(rpwi)
+
+mvols <- read.csv("C:/Users/Se Hyung Park/Documents/R/mvols.csv")
+mvols$Date <- as.Date(mvols$Date, "%Y-%m-%d")
+mvols$Date <- NULL
+
+ret <- read.csv("U:/R/ret.csv")
+ret$Date <- as.Date(ret$Date, "%d/%m/%Y")
+Date <- ret$Date
+ret$Date <- NULL
+
+
+# Return series
+
+mean.narm <- function(x) mean(x, na.rm=T)
+
+drpmom <- NULL
+drpmom <- as.data.frame(drpmom)
+
+for (k in 1:ncol(ret)){ # for k assets
+    for (i in 1:(nrow(dret)-12)){ # for n months
+        drpmom[i,k] <- constant[(i+12)]*dret[(i+12), k]*rpw[(i+12),k]*sign(sum(dret[i:(i+11), k]))
+    }
+}
+
+drpmom12 <- drpmom
+drpmom12 <- apply(drpmom,1,mean.narm)
+drpmom12 <- data.frame(Date[13:nrow(ret)],drpmom12)
+
+colnames(drpmom12)[1] <- "Date"
+colnames(drpmom12)[2] <- "Mom12 Ret"
+
+write.csv(drpmom12,"U:/R/drp ret c.csv")
+
+
+
+# Match days with months
+
+colnames(rpwi)[1] <- "Date"
+rpwi$Date <- as.Date(rpwi$Date,"%d/%m/%Y")
+Datem <- as.data.frame(Date)
+colnames(Datem)[1] <- "Date"
+rpw <- merge(Datem, rpwi, all.x = T, all.y = F)
+rpw <- rpw[,-1]
+
+
+# Leverage constant 1
+
+imvols <- NULL
+imvols <- as.data.frame(imvols)
+
+for (k in 1:ncol(ret)){ # for k assets
+    for (i in 1:nrow(ret)){ # for n months
+        imvols[i,k] <- 1/(mvols[i,k]*sqrt(261))
+    }
+}
+
+constant <- NULL
+for (i in 1:nrow(ret)){ # for n days
+    constant[i] <- 0.4*sum(imvols[i,])
+}
+
+ws <- NULL
+ws <- as.data.frame(ws)
+
+for (k in 1:ncol(ret)){ # for k assets
+    for (i in 1:(nrow(ret)-12)){ # for n months
+        ws[i,k] <- imvols[(i+12),k]/sum(imvols[(i+12),])
+    }
+}
+
+ws <- as.matrix(ws)
+
+rpws <- NULL
+rpws <- as.data.frame(rpws)
+
+for (k in 1:ncol(ret)){ # for k assets
+    for (i in 1:(nrow(ret)-12)){ # for n months
+        rpws[i,k] <- rpw[(i+12),k]*sign(sum(ret[i:(i+11), k]))
+    }
+}
+
+rpws <- as.matrix(rpws)
+
+write.csv(rpws,"U:/R/rpws.csv")
+
+
+# Rolling covariance matrix
+
+dret <- read.csv("C:/Users/Se Hyung Park/Documents/R/dret.csv")
+dret$Date <- as.Date(dret$Date, "%d/%m/%Y")
+dret <- dret[241:6616,]
+
+dret.wod <- dret[,-1]
+
+h <- 90
+ldate.list <- read.csv("C:/Users/Se Hyung Park/Documents/R/ldate.list.csv")
+ldate.list <- as.matrix(ldate.list)
+
+rcov = function(i) cov(dret.wod[ldate.list[i]:(ldate.list[i]+h),],use="pairwise.complete.obs")
+
+
+# Derive portfolio variance
+
+rpstdev <- NULL
+for (i in 1:(nrow(ret)-12)){ # for n days
+    rpstdev[i] <- sqrt(t(cbind(rpws[i,]))%*%(rcov(i))%*%cbind(rpws[i,]))
+}
+
+
+# Leverage constant 2
+
+lconstant <- NULL
+for (i in 1:(nrow(ret)-12)){ # for n days
+    lconstant[i] <- 0.14/rpstdev[i]
+}
+
+
+# Return series
+
+mean.narm <- function(x) mean(x, na.rm=T)
+
+rpmom <- NULL
+rpmom <- as.data.frame(rpmom)
+
+for (k in 1:ncol(ret)){ # for k assets
+    for (i in 1:(nrow(ret)-12)){ # for n months
+        rpmom[i,k] <- constant[(i+12)]*ret[(i+12), k]*ws[i,k]*sign(sum(ret[i:(i+11), k]))
+    }
+}
+
+rpmom12 <- rpmom
+rpmom12 <- apply(rpmom,1,mean.narm)
+rpmom12 <- data.frame(Date[13:nrow(ret)],rpmom12)
+
+colnames(rpmom12)[1] <- "Date"
+colnames(rpmom12)[2] <- "Mom12 Ret"
+
+write.csv(rpmom12,"C:/Users/Se Hyung Park/Documents/R/cv ret b.csv")

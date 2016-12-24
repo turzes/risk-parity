@@ -1,0 +1,84 @@
+## ======== Performance Metrics ======== ##
+
+# Clear workspace
+
+rm(list=ls()) ; par(mfrow=c(1,1))
+library(xts)
+library(zoo)
+library(SharpeR)
+library(PerformanceAnalytics)
+
+results <- read.csv("U:/R/results.csv")
+results$Date <- as.Date(results$Date,"%d/%m/%Y")
+
+ret <- Return.annualized(Return.read(results),scale=12)
+sd <- StdDev.annualized(Return.read(results),scale=12)
+
+sr <- SharpeRatio.annualized(Return.read(results),Rf=0,scale=12)
+
+skew <- skewness(results[,2:7])
+kurt <- kurtosis(results[,2:7])
+
+ctgttest <- as.matrix(results[,3:4])
+sr_equality_test(ctgttest,type="F")
+
+rptest <- as.matrix(results[,6:7])
+sr_equality_test(rptest,type="F")
+
+sortr <- SortinoRatio(Return.read(results))
+ansort <- sortr*sqrt(12)
+
+cr <- CalmarRatio(Return.read(results),scale=12)
+
+md <- maxDrawdown(Return.read(results),invert=T)
+
+metrics <- rbind(ret,sd,sr,skew,kurt,ansort,cr,md)
+write.csv(metrics,"U:/R/metrics.csv")
+
+dd1 <- chart.Drawdown(Return.read(results)[,(2:3)],legend.loc="bottom")
+dd2 <- chart.Drawdown(Return.read(results)[,(5:6)],legend.loc="bottom")
+
+rollsr1 <- chart.RollingPerformance(Return.read(results)[,(2:3)],width = 24,legend.loc="bottom")
+rollsr1 <- chart.RollingPerformance(Return.read(results)[,(5:6)],width = 36,legend.loc="bottom")
+
+
+# Clear workspace
+
+rm(list=ls()) ; par(mfrow=c(1,1))
+library(xts)
+library(zoo)
+library(SharpeR)
+library(PerformanceAnalytics)
+
+results2 <- read.csv("U:/R/results2.csv")
+results2$Date <- as.Date(results2$Date,"%d/%m/%Y")
+
+ret <- Return.annualized(Return.read(results2),scale=12)
+sd <- StdDev.annualized(Return.read(results2),scale=12)
+
+sr <- SharpeRatio.annualized(Return.read(results2),Rf=0,scale=12)
+
+skew <- skewness(results2[,2:7])
+kurt <- kurtosis(results2[,2:7])
+
+ctgttest <- as.matrix(results2[,3:4])
+sr_equality_test(ctgttest,type="F")
+
+rptest <- as.matrix(results2[,6:7])
+sr_equality_test(rptest,type="F")
+
+sortr <- SortinoRatio(Return.read(results2))
+ansort <- sortr*sqrt(12)
+
+cr <- CalmarRatio(Return.read(results2),scale=12)
+
+md <- maxDrawdown(Return.read(results2),invert=T)
+
+metrics2 <- rbind(ret,sd,sr,skew,kurt,ansort,cr,md)
+write.csv(metrics2,"U:/R/metrics2.csv")
+
+dd1 <- chart.Drawdown(Return.read(results2)[,(2:3)],legend.loc="bottom")
+dd2 <- chart.Drawdown(Return.read(results2)[,(5:6)],legend.loc="bottom")
+
+rollsr1 <- chart.RollingPerformance(Return.read(results2)[,(2:3)],width = 24,legend.loc="bottom")
+rollsr1 <- chart.RollingPerformance(Return.read(results2)[,(5:6)],width = 36,legend.loc="bottom")

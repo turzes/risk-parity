@@ -1,0 +1,104 @@
+#======================
+# Data Cleaning
+#======================
+
+# Clear workspace
+
+rm(list=ls()) ; par(mfrow=c(1,1))
+library(xts)
+library(zoo)
+
+# Load monthly futures returns
+
+ret <- read.csv("U:/R/ret.csv")
+ret$Date <- as.Date(ret$Date,"%d/%m/%Y")
+str(ret)
+
+# Import daily returns to build volatilty measure
+
+dret <- read.csv("U:/R/dret.csv")
+sd.narm <- function(x) sd(x, na.rm=T)
+dvols <- rollapply(dret[,2:ncol(dret)], 60, sd.narm)
+
+dvols <- data.frame(dret$Date[60:nrow(dret)], dvols)
+colnames(dvols)[1] <- "Date"
+dvols$Date <- as.Date(dvols$Date,"%d/%m/%Y")
+str(dvols)
+
+# Matching daily vols with dates from monthly returns
+
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+DateV <- merge(Datem, dvols, all.x = T, all.y = F)
+
+write.csv(dvols,"U:/dvols.csv")
+write.csv(DateV,"U:/R/mvols.csv")
+
+
+#======================
+# Strategy Coding
+#======================
+
+# Clear workspace
+
+rm(list=ls()) ; par(mfrow=c(1,1))
+
+# Load return and daily vols with month dates (Remove first column in mvols)
+
+ret <- read.csv("U:/R/ret.csv")
+mvols <- read.csv("U:/R/mvols.csv")
+
+ret$Date <- as.Date(ret$Date, "%d/%m/%Y")
+mvols$Date <- as.Date(mvols$Date, "%Y-%m-%d")
+
+#Remove dates from dataset and reattach later
+
+Date <- ret$Date
+ret$Date <- NULL
+mvols$Date <- NULL
+
+# Mean with na's removed
+
+mean.narm <- function(x) mean(x, na.rm=T)
+
+
+## ======== Volatility parity strategy ======== ##
+
+# === Constant volatility strategy
+cvmom <- NULL
+cvmom <- as.data.frame(cvmom)
+
+for (k in 1:ncol(ret)){ # for k assets
+    for (i in 1:(nrow(ret)-12)){ # for n months
+        cvmom[i,k] <- ret[(i+12), k]*(0.4/(mvols[(i+12), k]*sqrt(261)))*sign(sum(ret[i:(i+11), k]))
+    }
+}
+
+cvmom12 <- cvmom
+cvmom12 <- apply(cvmom,1,mean.narm)
+cvmom12 <- data.frame(Date[13:nrow(ret)],cvmom12)
+
+colnames(cvmom12)[1] <- "Date"
+colnames(cvmom12)[2] <- "Mom12 Ret"
+
+write.csv(cvmom12,"U:/R/cv ret.csv")
+
+
+# === Long-only constant volatility strategy
+lomom <- NULL
+lomom <- as.data.frame(lomom)
+
+for (k in 1:ncol(ret)){ # for k assets
+    for (i in 1:(nrow(ret)-12)){ # for n months
+        lomom[i,k] <- ret[(i+12), k]*(0.4/(mvols[(i+12), k]*sqrt(261)))
+    }
+}
+
+lomom12 <- lomom
+lomom12 <- apply(lomom, 1, mean.narm)
+lomom12 <- data.frame(Date[13:nrow(ret)], lomom12)
+
+colnames(lomom12)[1] <- "Date"
+colnames(lomom12)[2] <- "Long Only Returns"
+
+write.csv(lomom12,"U:/R/lo ret.csv")

@@ -1,0 +1,602 @@
+## ======== Incorporating pairwise correlation ======== ##
+
+# === Changing the target
+
+# Clear workspace
+
+rm(list=ls()) ; par(mfrow=c(1,1))
+library(xts)
+library(zoo)
+
+# Load monthly futures returns
+
+ret <- read.csv("U:/R/ret.csv")
+ret$Date <- as.Date(ret$Date,"%d/%m/%Y")
+str(ret)
+
+# Import daily returns to build volatilty measure
+
+dret <- read.csv("U:/R/dret.csv")
+dret.wod <- dret[,-1]
+
+
+# Average pairwise correlation of the portfolio
+
+avcor = NULL
+h = 90 # 90 days to calculate correlation
+for (i in 1:(nrow(dret.wod)-h)){
+    avcor[i] = mean(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[lower.tri(cor(dret.wod[i:(i+h),]))], na.rm=T) 
+}
+
+avcor <- data.frame(dret$Date[(h+1):nrow(dret.wod)], avcor)
+colnames(avcor)[1] <- "Date"
+avcor$Date <- as.Date(avcor$Date,"%d/%m/%Y")
+
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+avpcor <- merge(Datem, avcor, all.x = T, all.y = F)
+
+write.csv(avpcor,"U:/R/avpcor.csv")
+
+
+# Expression for average pairwise correlation of asset i
+
+avpcor1 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor1[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,1],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor1 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor1)
+colnames(avpcor1)[1] <- "Date"
+avpcor1$Date <- as.Date(avpcor1$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date1 <- merge(Datem, avpcor1, all.x = T, all.y = F)
+
+
+avpcor2 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor2[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,2],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor2 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor2)
+colnames(avpcor2)[1] <- "Date"
+avpcor2$Date <- as.Date(avpcor2$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date2 <- merge(Datem, avpcor2, all.x = T, all.y = F)
+
+
+avpcor3 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor3[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,3],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor3 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor3)
+colnames(avpcor3)[1] <- "Date"
+avpcor3$Date <- as.Date(avpcor3$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date3 <- merge(Datem, avpcor2, all.x = T, all.y = F)
+
+
+avpcor4 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor4[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,4],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor4 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor4)
+colnames(avpcor4)[1] <- "Date"
+avpcor4$Date <- as.Date(avpcor2$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date4 <- merge(Datem, avpcor4, all.x = T, all.y = F)
+
+
+avpcor5 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor5[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,5],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor5 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor5)
+colnames(avpcor5)[1] <- "Date"
+avpcor5$Date <- as.Date(avpcor5$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date5 <- merge(Datem, avpcor5, all.x = T, all.y = F)
+
+
+avpcor6 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor6[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,6],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor6 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor6)
+colnames(avpcor6)[1] <- "Date"
+avpcor6$Date <- as.Date(avpcor6$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date6 <- merge(Datem, avpcor6, all.x = T, all.y = F)
+
+
+avpcor7 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor7[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,7],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor7 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor7)
+colnames(avpcor7)[1] <- "Date"
+avpcor7$Date <- as.Date(avpcor7$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date7 <- merge(Datem, avpcor7, all.x = T, all.y = F)
+
+
+avpcor8 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor8[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,8],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor8 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor8)
+colnames(avpcor8)[1] <- "Date"
+avpcor8$Date <- as.Date(avpcor7$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date8 <- merge(Datem, avpcor8, all.x = T, all.y = F)
+
+
+avpcor9 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor9[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,9],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor9 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor9)
+colnames(avpcor9)[1] <- "Date"
+avpcor9$Date <- as.Date(avpcor9$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date9 <- merge(Datem, avpcor9, all.x = T, all.y = F)
+
+
+avpcor10 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor10[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,10],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor10 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor10)
+colnames(avpcor10)[1] <- "Date"
+avpcor10$Date <- as.Date(avpcor10$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date10 <- merge(Datem, avpcor10, all.x = T, all.y = F)
+
+
+avpcor11 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor11[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,11],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor11 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor11)
+colnames(avpcor11)[1] <- "Date"
+avpcor11$Date <- as.Date(avpcor11$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date11 <- merge(Datem, avpcor11, all.x = T, all.y = F)
+
+
+avpcor12 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor12[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,12],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor12 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor12)
+colnames(avpcor12)[1] <- "Date"
+avpcor12$Date <- as.Date(avpcor12$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date12 <- merge(Datem, avpcor12, all.x = T, all.y = F)
+
+
+avpcor13 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor13[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,13],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor13 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor13)
+colnames(avpcor13)[1] <- "Date"
+avpcor13$Date <- as.Date(avpcor13$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date13 <- merge(Datem, avpcor13, all.x = T, all.y = F)
+
+
+avpcor14 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor14[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,14],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor14 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor14)
+colnames(avpcor14)[1] <- "Date"
+avpcor14$Date <- as.Date(avpcor14$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date14 <- merge(Datem, avpcor14, all.x = T, all.y = F)
+
+
+avpcor15 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor15[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,15],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor15 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor15)
+colnames(avpcor15)[1] <- "Date"
+avpcor15$Date <- as.Date(avpcor15$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date15 <- merge(Datem, avpcor15, all.x = T, all.y = F)
+
+
+avpcor16 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor16[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,16],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor16 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor16)
+colnames(avpcor16)[1] <- "Date"
+avpcor16$Date <- as.Date(avpcor16$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date16 <- merge(Datem, avpcor16, all.x = T, all.y = F)
+
+
+avpcor17 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor17[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,17],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor17 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor17)
+colnames(avpcor17)[1] <- "Date"
+avpcor17$Date <- as.Date(avpcor17$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date17 <- merge(Datem, avpcor17, all.x = T, all.y = F)
+
+
+avpcor18 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor18[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,18],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor18 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor18)
+colnames(avpcor18)[1] <- "Date"
+avpcor18$Date <- as.Date(avpcor18$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date18 <- merge(Datem, avpcor18, all.x = T, all.y = F)
+
+
+avpcor19 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor19[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,19],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor19 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor19)
+colnames(avpcor19)[1] <- "Date"
+avpcor19$Date <- as.Date(avpcor19$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date19 <- merge(Datem, avpcor19, all.x = T, all.y = F)
+
+
+avpcor20 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor20[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,20],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor20 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor20)
+colnames(avpcor20)[1] <- "Date"
+avpcor20$Date <- as.Date(avpcor20$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date20 <- merge(Datem, avpcor20, all.x = T, all.y = F)
+
+
+avpcor21 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor21[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,21],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor21 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor21)
+colnames(avpcor21)[1] <- "Date"
+avpcor21$Date <- as.Date(avpcor21$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date21 <- merge(Datem, avpcor21, all.x = T, all.y = F)
+
+
+avpcor22 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor22[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,22],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor22 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor22)
+colnames(avpcor22)[1] <- "Date"
+avpcor22$Date <- as.Date(avpcor22$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date22 <- merge(Datem, avpcor22, all.x = T, all.y = F)
+
+
+avpcor23 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor23[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,23],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor23 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor23)
+colnames(avpcor23)[1] <- "Date"
+avpcor23$Date <- as.Date(avpcor23$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date23 <- merge(Datem, avpcor23, all.x = T, all.y = F)
+
+
+avpcor24 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor24[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,24],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor24 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor24)
+colnames(avpcor24)[1] <- "Date"
+avpcor24$Date <- as.Date(avpcor24$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date24 <- merge(Datem, avpcor24, all.x = T, all.y = F)
+
+
+avpcor25 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor25[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,25],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor25 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor25)
+colnames(avpcor25)[1] <- "Date"
+avpcor25$Date <- as.Date(avpcor25$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date25 <- merge(Datem, avpcor25, all.x = T, all.y = F)
+
+
+avpcor26 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor26[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,26],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor26 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor26)
+colnames(avpcor26)[1] <- "Date"
+avpcor26$Date <- as.Date(avpcor26$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date26 <- merge(Datem, avpcor26, all.x = T, all.y = F)
+
+
+avpcor27 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor27[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,27],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor27 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor27)
+colnames(avpcor27)[1] <- "Date"
+avpcor27$Date <- as.Date(avpcor2$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date27 <- merge(Datem, avpcor27, all.x = T, all.y = F)
+
+
+avpcor28 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor28[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,28],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor28 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor28)
+colnames(avpcor28)[1] <- "Date"
+avpcor28$Date <- as.Date(avpcor28$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date28 <- merge(Datem, avpcor28, all.x = T, all.y = F)
+
+
+avpcor29 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor29[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,29],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor29 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor29)
+colnames(avpcor29)[1] <- "Date"
+avpcor29$Date <- as.Date(avpcor29$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date29 <- merge(Datem, avpcor28, all.x = T, all.y = F)
+
+
+avpcor30 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor30[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,30],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor30 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor30)
+colnames(avpcor30)[1] <- "Date"
+avpcor30$Date <- as.Date(avpcor30$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date30 <- merge(Datem, avpcor30, all.x = T, all.y = F)
+
+
+avpcor31 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor31[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,31],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor31 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor31)
+colnames(avpcor31)[1] <- "Date"
+avpcor31$Date <- as.Date(avpcor31$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date31 <- merge(Datem, avpcor31, all.x = T, all.y = F)
+
+
+avpcor32 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor32[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,32],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor32 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor32)
+colnames(avpcor32)[1] <- "Date"
+avpcor32$Date <- as.Date(avpcor32$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date32 <- merge(Datem, avpcor32, all.x = T, all.y = F)
+
+
+avpcor33 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor33[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,33],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor33 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor33)
+colnames(avpcor33)[1] <- "Date"
+avpcor33$Date <- as.Date(avpcor33$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date33 <- merge(Datem, avpcor33, all.x = T, all.y = F)
+
+
+avpcor34 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor34[i+h] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,34],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor34 <- data.frame(dret$Date[1:nrow(dret)], avpcor34)
+colnames(avpcor34)[1] <- "Date"
+avpcor34$Date <- as.Date(avpcor34$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date34 <- merge(Datem, avpcor34, all.x = T, all.y = F)
+
+
+avpcor35 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor35[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,35],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor35 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor35)
+colnames(avpcor35)[1] <- "Date"
+avpcor35$Date <- as.Date(avpcor35$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date35 <- merge(Datem, avpcor35, all.x = T, all.y = F)
+
+
+avpcor36 <- NULL
+for (i in 1:(nrow(dret.wod)-h)){ # for n days
+    avpcor36[i] <- (sum(cor(dret.wod[i:(i+h),],use="pairwise.complete.obs")[,36],na.rm=T)-1)/(ncol(dret.wod)-1)
+}
+avpcor36 <- data.frame(dret$Date[(h+1):nrow(dret)], avpcor36)
+colnames(avpcor36)[1] <- "Date"
+avpcor36$Date <- as.Date(avpcor36$Date,"%d/%m/%Y")
+Datem <- as.data.frame(ret$Date)
+colnames(Datem)[1] <- "Date"
+Date36 <- merge(Datem, avpcor36, all.x = T, all.y = F)
+
+
+Date1 <- Date1[,-1]
+Date2 <- Date2[,-1]
+Date3 <- Date3[,-1]
+Date4 <- Date4[,-1]
+Date5 <- Date5[,-1]
+Date6 <- Date6[,-1]
+Date7 <- Date7[,-1]
+Date8 <- Date8[,-1]
+Date9 <- Date9[,-1]
+Date10 <- Date10[,-1]
+Date11 <- Date11[,-1]
+Date12 <- Date12[,-1]
+Date13 <- Date13[,-1]
+Date14 <- Date14[,-1]
+Date15 <- Date15[,-1]
+Date16 <- Date16[,-1]
+Date17 <- Date17[,-1]
+Date18 <- Date18[,-1]
+Date19 <- Date19[,-1]
+Date20 <- Date20[,-1]
+Date21 <- Date21[,-1]
+Date22 <- Date22[,-1]
+Date23 <- Date23[,-1]
+Date24 <- Date24[,-1]
+Date25 <- Date25[,-1]
+Date26 <- Date26[,-1]
+Date27 <- Date27[,-1]
+Date28 <- Date28[,-1]
+Date29 <- Date29[,-1]
+Date30 <- Date30[,-1]
+Date31 <- Date31[,-1]
+Date32 <- Date32[,-1]
+Date33 <- Date33[,-1]
+Date34 <- Date34[,-1]
+Date35 <- Date35[,-1]
+Date36 <- Date36[,-1]
+
+
+avpcori <- NULL
+avpcori <- as.data.frame(avpcori)
+avpcori <- cbind(Date1,Date2,Date3,Date4,Date5,Date6,Date7,Date8,Date9,Date10,Date11,Date12,Date13,Date14,Date15,Date16,Date17,Date18,Date19,
+    Date20,Date21,Date22,Date23,Date24,Date25,Date26,Date27,Date28,Date29,Date30,Date31,Date32,Date33,Date34,Date35,Date36)
+
+write.csv(avpcori,"U:/R/avpcori.csv")
+
+
+# Return series
+
+remove(ret)
+ret <- read.csv("U:/R/ret.csv")
+mvols <- read.csv("U:/R/mvols.csv")
+mvols <- mvols[,-1]
+
+ret$Date <- as.Date(ret$Date, "%d/%m/%Y")
+mvols$Date <- as.Date(mvols$Date, "%Y-%m-%d")
+
+Date <- ret$Date
+ret$Date <- NULL
+mvols$Date <- NULL
+
+cf <- NULL
+cf <- as.data.frame(cf)
+
+for (k in 1:ncol(ret)){ # for k assets
+    for (i in 1:nrow(ret)){ # for n months
+        cf[i,k] <- ncol(ret)*(1/sqrt((ncol(ret)+(2*(ncol(ret)-1)*avpcori[(i),k])+((ncol(ret)-1)*(ncol(ret)-2)*avpcor[i,2]))))
+    }
+}
+
+write.csv(cf,"U:/R/cf.csv")
+
+
+mean.narm <- function(x) mean(x, na.rm=T)
+
+ctgtmom <- NULL
+ctgtmom <- as.data.frame(ctgtmom)
+
+for (k in 1:ncol(ret)){ # for k assets
+    for (i in 1:(nrow(ret)-12)){ # for n months
+        ctgtmom[i,k] <- ret[(i+12), k]*(1/(mvols[(i+12), k]*sqrt(261)))*sign(sum(ret[i:(i+11), k]))*(cf[(i+12),k]*0.14)
+    }
+}
+
+ctgtmom12 <- ctgtmom
+ctgtmom12 <- apply(ctgtmom,1,mean.narm)
+ctgtmom12 <- data.frame(Date[13:nrow(ret)],ctgtmom12)
+
+colnames(ctgtmom12)[1] <- "Date"
+colnames(ctgtmom12)[2] <- "Mom12 Ret"
+
+write.csv(ctgtmom12,"U:/R/ctgt ret.csv")
+
+
+# Generating weights for turnover analysis
+
+cvw <- NULL
+cvw <- as.data.frame(cvw)
+
+for (k in 1:ncol(ret)){ # for k assets
+    for (i in 1:(nrow(ret)-12)){ # for n months
+        cvw[i,k] <- 0.4*(1/(mvols[(i+12), k]*sqrt(261)*ncol(ret)))*sign(sum(ret[i:(i+11), k]))
+    }
+}
+
+write.csv(cvw,"U:/R/cvw.csv")
+
+ctgtw <- NULL
+ctgtw <- as.data.frame(ctgtw)
+
+for (k in 1:ncol(ret)){ # for k assets
+    for (i in 1:(nrow(ret)-12)){ # for n months
+        ctgtw[i,k] <- (1/(mvols[(i+12), k]*sqrt(261)*ncol(ret)))*sign(sum(ret[i:(i+11), k]))*(cf[(i+12),k]*0.14)
+    }
+}
+
+write.csv(ctgtw,"U:/R/ctgtw.csv")
+
+low <- NULL
+low <- as.data.frame(low)
+
+for (k in 1:ncol(ret)){ # for k assets
+  for (i in 1:(nrow(ret)-12)){ # for n months
+    low[i,k] <- (1/(mvols[(i+12), k]*sqrt(261)*ncol(ret)))*sign(sum(ret[i:(i+11), k]))*(cf[(i+12),k]*0.14)
+  }
+}
+
+write.csv(low,"U:/R/low.csv")
