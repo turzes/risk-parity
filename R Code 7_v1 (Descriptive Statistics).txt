@@ -1,5 +1,7 @@
 ## ======== Descriptive Statistics ======== ##
-
+#
+# SE 2016
+#
 # Clear workspace
 
 rm(list=ls()) ; par(mfrow=c(1,1))
@@ -8,7 +10,7 @@ library(zoo)
 library(moments)
 library(PerformanceAnalytics)
 
-ret <- read.csv("U:/R/ret.csv")
+ret <- read.csv(file="ret.csv")
 ret$Date <- as.Date(ret$Date,"%d/%m/%Y")
 ret.wod <- ret[,-1]
 
