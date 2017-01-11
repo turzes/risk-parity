@@ -165,6 +165,7 @@ colnames(Datem)[1] <- "Date"
 internrg <- merge(Datem, avpcornrg, all.x = T, all.y = F)
 
 
+
 interfi <- interfi[,-1]
 interfx <- interfx[,-1]
 intercmdty <- intercmdty[,-1]
